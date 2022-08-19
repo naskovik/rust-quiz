@@ -28,7 +28,9 @@ fn main() {
     let mut correct: u16 = 0;
     if let Ok(problems) = read_csv_file(&file) {
         thread::spawn(|| {
-            Countdown::new(30).start()
+            let mut countdown = Countdown::new(30);
+            countdown.start();
+            process::exit(0);
         });
         for p in problems {
             let mut ans = String::new();
