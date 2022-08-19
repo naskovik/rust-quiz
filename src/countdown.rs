@@ -1,3 +1,5 @@
+// Originally by sebglazebrook
+
 use std::time::Duration;
 use std::thread::sleep;
 use std::io::{ self, Write };
