@@ -6,9 +6,11 @@ use std::process;
 use crate::problem::Problem;
 use crate::countdown::Countdown;
 use std::thread;
+use std::sync::mpsc;
 
 
 fn read_csv_file(path: &str) -> Result<Vec<Problem>, Box<dyn Error>> {
+
     let mut problems: Vec<Problem> = Vec::new();
     let mut reader = csv::Reader::from_path(path)?;
     for record in reader.records() {
@@ -26,23 +28,50 @@ fn main() {
         std::env::args()
         .nth(1)
         .expect("No file path provided");
+
     let mut correct: u16 = 0;
+    let (tx, rx) = mpsc::channel();
+
     if let Ok(problems) = read_csv_file(&file) {
-        thread::spawn(|| {
+
+        thread::spawn( move || {
+
             let mut countdown = Countdown::new(30);
             countdown.start();
-            process::exit(0);
+            tx.send(0).unwrap(); // TODO this doesn't work
+
         });
-        for p in problems {
+
+        let mut index: usize = 0;
+
+        loop {
+
+            let p = &problems[index];
             let mut ans = String::new();
             use std::io::stdin;
             println!("{:?}", p.question);
-            stdin().read_line(&mut ans).expect("Did not get a correct string");
+            stdin().read_line(&mut ans)
+                .expect("Did not get a correct string");
+
             if Problem::check(&p, ans) == true {
                 correct += 1;
             }
+
+            if let Ok(_) = rx.try_recv() {
+                println!("Time's up");
+                break;
+            }
+
+            if index == problems.len() - 1 {
+                break;
+            }
+
+            index += 1;
         }
+
         println!("Your score: {}", correct);
+        process::exit(0);
+
     }
     else {
         process::exit(1);
