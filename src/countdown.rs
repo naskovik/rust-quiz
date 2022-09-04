@@ -1,8 +1,8 @@
 // Originally by sebglazebrook
 
-use std::time::Duration;
+use std::io::{self, Write};
 use std::thread::sleep;
-use std::io::{ self, Write };
+use std::time::Duration;
 
 pub struct Countdown {
     duration: usize,
@@ -10,10 +10,10 @@ pub struct Countdown {
 }
 
 impl Countdown {
-    pub fn new(duration: usize)-> Self {
+    pub fn new(duration: usize) -> Self {
         Self {
             duration,
-            running: false
+            running: false,
         }
     }
 

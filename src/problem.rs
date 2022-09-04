@@ -1,10 +1,10 @@
 pub struct Problem {
     pub question: String,
-    pub answer: String
+    pub answer: String,
 }
 
 impl Problem {
-    pub fn check(&self,  mut ans: String)-> bool {
+    pub fn check(&self, mut ans: String) -> bool {
         if let Some('\n') = ans.chars().next_back() {
             ans.pop();
         }
