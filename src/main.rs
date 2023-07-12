@@ -1,12 +1,16 @@
 mod countdown;
 mod problem;
 
-use crate::countdown::Countdown;
-use crate::problem::Problem;
+use crate::{
+    countdown::Countdown,
+    problem::Problem
+};
 use std::error::Error;
 use std::process;
 use std::sync::mpsc;
 use std::thread;
+
+const QUIZ_TIME: usize = 30;
 
 fn read_csv_file(path: &str) -> Result<Vec<Problem>, Box<dyn Error>> {
     let mut problems: Vec<Problem> = Vec::new();
@@ -26,10 +30,10 @@ fn main() {
 
     let mut correct: u16 = 0;
     let (tx, rx) = mpsc::channel();
+    let mut countdown = Countdown::new(QUIZ_TIME);
 
     if let Ok(problems) = read_csv_file(&file) {
         thread::spawn(move || {
-            let mut countdown = Countdown::new(30);
             countdown.start();
             tx.send(0).unwrap();
         });
@@ -37,6 +41,12 @@ fn main() {
         let mut index: usize = 0;
 
         loop {
+
+            if let Ok(_) = rx.try_recv() {
+                println!("Time's up");
+                break;
+            }
+
             let p = &problems[index];
             let mut ans = String::new();
             use std::io::stdin;
@@ -45,13 +55,8 @@ fn main() {
                 .read_line(&mut ans)
                 .expect("Did not get a correct string");
 
-            if Problem::check(&p, ans) == true {
+            if p.check(ans) == true {
                 correct += 1;
-            }
-
-            if let Ok(_) = rx.try_recv() {
-                println!("Time's up");
-                break;
             }
 
             if index == problems.len() - 1 {
