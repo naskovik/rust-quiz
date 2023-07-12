@@ -4,7 +4,7 @@ pub struct Problem {
 }
 
 impl Problem {
-    pub fn check(&self, mut ans: String) -> bool {
+    pub fn check(&self, ans: &mut String) -> bool {
         if let Some('\n') = ans.chars().next_back() {
             ans.pop();
         }
@@ -13,6 +13,6 @@ impl Problem {
             ans.pop();
         }
 
-        return self.answer.eq(&ans);
+        return self.answer.eq(ans);
     }
 }

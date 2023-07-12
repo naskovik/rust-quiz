@@ -55,7 +55,7 @@ fn main() {
                 .read_line(&mut ans)
                 .expect("Did not get a correct string");
 
-            if p.check(ans) == true {
+            if p.check(&mut ans) {
                 correct += 1;
             }
 
