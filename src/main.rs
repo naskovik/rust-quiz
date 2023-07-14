@@ -26,7 +26,9 @@ fn read_csv_file(path: &str) -> Result<Vec<Problem>, Box<dyn Error>> {
 }
 
 fn main() {
-    let file = std::env::args().nth(1).expect("No file path provided");
+    let file = std::env::args()
+        .nth(1)
+        .expect("No file path provided");
 
     let mut correct: u16 = 0;
     let (tx, rx) = mpsc::channel();
@@ -37,16 +39,12 @@ fn main() {
             countdown.start();
             tx.send(0).unwrap();
         });
-
         let mut index: usize = 0;
-
-        loop {
-
+        while index <= problems.len() - 1 {
             if let Ok(_) = rx.try_recv() {
                 println!("Time's up");
                 break;
             }
-
             let p = &problems[index];
             let mut ans = String::new();
             use std::io::stdin;
@@ -58,14 +56,8 @@ fn main() {
             if p.check(&mut ans) {
                 correct += 1;
             }
-
-            if index == problems.len() - 1 {
-                break;
-            }
-
             index += 1;
         }
-
         println!("Your score: {}", correct);
         process::exit(0);
     } else {
