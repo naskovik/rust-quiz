@@ -25,6 +25,23 @@ fn read_csv_file(path: &str) -> Result<Vec<Problem>, Box<dyn Error>> {
     Ok(problems)
 }
 
+fn quiz_loop(problems: &Vec<Problem>, correct: &mut u16) {
+    use std::io::stdin;
+    let mut index: usize = 0;
+    while index <= problems.len() - 1 {
+        let p = &problems[index];
+        let mut ans = String::new();
+        println!("{:?}", p.question);
+        stdin()
+            .read_line(&mut ans)
+            .expect("Did not get a valid string");
+        if p.check(&mut ans) {
+            *correct += 1;
+        }
+        index += 1;
+    }
+}
+
 fn main() {
     let file = std::env::args()
         .nth(1)
@@ -39,24 +56,13 @@ fn main() {
             countdown.start();
             tx.send(0).unwrap();
         });
-        let mut index: usize = 0;
-        while index <= problems.len() - 1 {
-            if let Ok(_) = rx.try_recv() {
-                println!("Time's up");
-                break;
-            }
-            let p = &problems[index];
-            let mut ans = String::new();
-            use std::io::stdin;
-            println!("{:?}", p.question);
-            stdin()
-                .read_line(&mut ans)
-                .expect("Did not get a correct string");
 
-            if p.check(&mut ans) {
-                correct += 1;
-            }
-            index += 1;
+        quiz_loop(&problems, &mut correct);
+
+        if let Ok(_) = rx.try_recv() {
+            println!("Time's up");
+            println!("Your score: {}", correct);
+            process::exit(0);
         }
         println!("Your score: {}", correct);
         process::exit(0);
