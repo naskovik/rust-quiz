@@ -4,6 +4,11 @@ pub struct Problem {
 }
 
 impl Problem {
+
+    pub fn new(question: String, answer: String) -> Self {
+        Self { question, answer }
+    }
+
     pub fn check(&self, ans: &mut String) -> bool {
         if let Some('\n') = ans.chars().next_back() {
             ans.pop();
