@@ -20,10 +20,12 @@ fn read_csv_file(path: &str)
 
     for record in reader.records() {
         let result = record?;
-        problems.push(Problem::new(
-            result[0].to_string(),
-            result[1].to_string(),
-        ));
+        problems.push(
+            Problem::new(
+                result[0].to_string(),
+                result[1].to_string()
+            )
+        );
 
     }
 
