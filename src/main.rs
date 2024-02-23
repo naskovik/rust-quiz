@@ -6,7 +6,7 @@ use crate::{
     problem::Problem
 };
 use std::error::Error;
-use std::process;
+use std::{process, io};
 use std::sync::mpsc;
 use std::thread;
 
@@ -34,51 +34,69 @@ fn read_csv_file(path: &str)
 
 
 fn main() {
-    use std::io::stdin;
     let file = std::env::args()
         .nth(1)
         .expect("No file path provided");
 
     let mut correct: u16 = 0;
-    let (tx, rx) = mpsc::channel();
-    let mut countdown = Countdown::new(QUIZ_TIME);
+    let (countdown_tx, countdown_rx) = mpsc::channel();
+    let (input_tx, input_rx) = mpsc::channel::<bool>();
 
     if let Ok(problems) = read_csv_file(&file) {
 
-        thread::spawn(move || {
+        let thread1 = thread::spawn(move || {
+            let mut countdown = Countdown::new(QUIZ_TIME);
             countdown.start();
-            tx.send(0).unwrap();
+            countdown_tx.send(0).unwrap();
         });
 
-        let mut index: usize = 0;
-        while index < problems.len() && rx.try_recv().is_err() {
+        let thread2 = thread::spawn(move || {
+            let mut index: usize = 0;
+            while index < problems.len() {
 
-            let p = &problems[index];
-            let mut ans = String::new();
+                let p = &problems[index];
+                let mut buffer = String::new();
 
-            println!("{:?}", p.question);
+                println!("{:?}", p.question);
 
-            stdin()
-                .read_line(&mut ans)
-                .expect("Did not get a valid string");
+                io::stdin().read_line(&mut buffer).unwrap();
+                input_tx.send(
+                    p.check(&mut buffer)
+                ).unwrap();
 
-            if p.check(&mut ans) {
-                correct += 1;
+                index += 1;
+                
             }
 
-            index += 1;
+            let _ = input_tx.send(false);
+        });
+
+        loop {
+
+            match input_rx.try_recv() {
+                Ok(is_correct) => {
+                    if is_correct {
+                        correct += 1;
+                    }
+                },
+                _ => ()
+            }
+
+            if let Ok(_) = countdown_rx.try_recv() {
+
+                println!("Time's up");
+                println!("Your score: {}", correct);
+
+                break;
+            }
+
+
         }
 
-        if let Ok(_) = rx.try_recv() {
-            println!("Time's up");
-            println!("Your score: {}", correct);
-            process::exit(0);
-        }
-
-        println!("Your score: {}", correct);
         process::exit(0);
 
-    } else {
+    }
+    else {
         process::exit(1);
     }
 }
