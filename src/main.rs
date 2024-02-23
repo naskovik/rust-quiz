@@ -44,13 +44,13 @@ fn main() {
 
     if let Ok(problems) = read_csv_file(&file) {
 
-        let thread1 = thread::spawn(move || {
+        thread::spawn(move || {
             let mut countdown = Countdown::new(QUIZ_TIME);
             countdown.start();
             countdown_tx.send(0).unwrap();
         });
 
-        let thread2 = thread::spawn(move || {
+        thread::spawn(move || {
             let mut index: usize = 0;
             while index < problems.len() {
 
